@@ -1,5 +1,18 @@
+use regex::Regex;
+use clap::{App, Arg};
+
 fn main() {
-    let search_term = "picture";
+    let args = App::new("greg-lite")
+        .version("0.1")
+        .about("searches for patterns")
+        .arg(Arg::with_name("pattern")
+            .help("The pattern to search for")
+            .takes_value(true)
+            .required(true))
+        .get_matches();
+    
+    let pattern = args.value_of("pattern").unwrap();
+    let re = Regex::new(pattern).unwrap();
 
     let quote = "\
     Every face, every shop, bedroom window, public-house, and
@@ -7,10 +20,10 @@ fn main() {
     It is the same with books.
     What do we seek through millions of pages?";
 
-    for (i, line) in quote.lines().enumerate() {
-        if line.contains(search_term) {
-            let line_num = i + 1;
-            println!("{}: {}", line_num, line);
+    for line in quote.lines() {
+        match re.find(line) {
+            Some(_) => println!("{}", line),
+            None => (),
         }
     }
 }
