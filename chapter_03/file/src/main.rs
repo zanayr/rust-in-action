@@ -4,10 +4,17 @@ fn one_in(denominator: u32) -> bool {
     thread_rng().gen_ratio(1, denominator)
 }
 
+#[derive(Debug, PartialEq)]
+enum FileState {
+    Open,
+    Closed,
+}
+
 #[derive(Debug)]
 struct File {
     name: String,
     data: Vec<u8>,
+    state: FileState,
 }
 
 impl File {
@@ -15,6 +22,7 @@ impl File {
         File {
             name: String::from(name),
             data: Vec::new(),
+            state: FileState::Closed,
         }
     }
 
@@ -25,6 +33,9 @@ impl File {
     }
 
     fn read(self: &File, save_to: &mut Vec<u8>) -> Result<usize, String> {
+        if self.state != FileState::Open {
+            return Err(String::from("File must be open for reading"));
+        }
         let mut tmp = self.data.clone();
         let read_length = tmp.len();
 
@@ -34,19 +45,21 @@ impl File {
     }
 }
 
-fn open(file: File) -> Result<File, String> {
+fn open(mut file: File) -> Result<File, String> {
     if one_in(10_000) {
         let err_msg = String::from("Interrupted by signal!");
         return Err(err_msg);
     }
+    file.state = FileState::Open;
     Ok(file)
 }
 
-fn close(file: File) -> Result<File, String> {
+fn close(mut file: File) -> Result<File, String> {
     if one_in(100_000) {
         let err_msg = String::from("Interrupted by signal!");
         return Err(err_msg);
     }
+    file.state = FileState::Closed;
     Ok(file)
 }
 
