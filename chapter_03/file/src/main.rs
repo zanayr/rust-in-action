@@ -1,4 +1,9 @@
+#![allow(dead_code)]
+
+use std::fmt;
+use std::fmt::{Display};
 use rand::prelude::*;
+
 
 fn one_in(denominator: u32) -> bool {
     thread_rng().gen_ratio(1, denominator)
@@ -15,6 +20,15 @@ struct File {
     name: String,
     data: Vec<u8>,
     state: FileState,
+}
+
+impl Display for FileState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            FileState::Open => write!(f, "OPEN"),
+            FileState::Closed => write!(f, "CLOSED"),
+        }
+    }
 }
 
 impl File {
