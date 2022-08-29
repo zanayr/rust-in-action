@@ -1,3 +1,5 @@
+//! Simulating files one step at a time.
+
 #![allow(dead_code)]
 
 use std::fmt;
@@ -9,14 +11,18 @@ fn one_in(denominator: u32) -> bool {
     thread_rng().gen_ratio(1, denominator)
 }
 
+/// Represents the file state
+/// which can be either Open or Closed
 #[derive(Debug, PartialEq)]
-enum FileState {
+pub enum FileState {
     Open,
     Closed,
 }
 
+/// Represents a "file"
+/// which probably lives on a file system.
 #[derive(Debug)]
-struct File {
+pub struct File {
     name: String,
     data: Vec<u8>,
     state: FileState,
@@ -31,8 +37,15 @@ impl Display for FileState {
     }
 }
 
+impl Display for File {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<{} ({})>", self.name, self.state)
+    }
+}
+
 impl File {
-    fn new(name: &str) -> File {
+    /// New files are assumed to be empty, but a name is required.
+    pub fn new(name: &str) -> File {
         File {
             name: String::from(name),
             data: Vec::new(),
@@ -40,13 +53,15 @@ impl File {
         }
     }
 
-    fn new_with_data(name: &str, data: &Vec<u8>) -> File {
+    /// Create a new file with data.
+    pub fn new_with_data(name: &str, data: &Vec<u8>) -> File {
         let mut file = File::new(name);
         file.data = data.clone();
         file
     }
 
-    fn read(self: &File, save_to: &mut Vec<u8>) -> Result<usize, String> {
+    /// Read file, appending data into the data field, returning its new length.
+    pub fn read(self: &File, save_to: &mut Vec<u8>) -> Result<usize, String> {
         if self.state != FileState::Open {
             return Err(String::from("File must be open for reading"));
         }
