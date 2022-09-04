@@ -75,7 +75,7 @@ fn main () {
     for id in sat_ids {
         let sat = base.connect(id);
 
-        let msg = sat.recv(&mut mailbox);
-        println!("{:?}: {:?}", sat, msg);
+        let msg = sat.recv(&mut mailbox).unwrap();
+        println!("{:?}: {:?}", sat, msg.content);
     }
 }
