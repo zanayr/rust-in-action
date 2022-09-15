@@ -1,0 +1,8 @@
+[package]
+name = "write123"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tim McNamara <author@rustinaction.com>"
+]
+[dependencies]
+ byteorder = "1.2"
