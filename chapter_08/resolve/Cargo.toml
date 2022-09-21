@@ -1,0 +1,10 @@
+[package]
+name = "resolve"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tim McNamara <author@rustinaction.com>"]
+
+[dependencies]
+clap = "2"
+rand = "0.6"
+trust-dns = { version = "0.16", default-features = false }
