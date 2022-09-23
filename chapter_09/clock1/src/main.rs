@@ -8,6 +8,7 @@ impl Clock {
         Local::now()
     }
 
+    #[allow(dead_code)]
     fn set() -> ! {
         unimplemented!()
     }

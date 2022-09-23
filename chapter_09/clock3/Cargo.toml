@@ -1,6 +1,6 @@
 [package]
-name = "clock2"
-version = "0.1.2"
+name = "clock3"
+version = "0.1.0"
 edition = "2021"
 authors = ["Tim McNamara <author@rustinaction.com>"]
 
