@@ -112,18 +112,105 @@ impl NTPMessage {
     fn tx_time(&self) -> Result<NTPTimestamp, std::io::Error> {
         self.parse_timestamp(40)
     }
+}
 
-    fn weighted_mean(values: &[f64], weights: &[f64]) -> f64 {
-        let mut result = 0.0;
-        let mut sum_of_weights = 0.0;
+fn weighted_mean(values: &[f64], weights: &[f64]) -> f64 {
+    let mut result = 0.0;
+    let mut sum_of_weights = 0.0;
 
-        for (v, w) in values.iter().zip(weights) {
-            result += v * w;
-            sum_of_weights += w;
-        }
-
-        result / sum_of_weights
+    for (v, w) in values.iter().zip(weights) {
+        result += v * w;
+        sum_of_weights += w;
     }
+
+    result / sum_of_weights
+}
+
+fn ntp_roundtrip(host: &str, port: u16) -> Result<NTPResult, std::io::Error> {
+    let destination = format!("{}:{}", host, port);
+    let timeout = Duration::from_secs(1);
+
+    let request = NTPMessage::client();
+    let mut response = NTPMessage::new();
+
+    let message = request.data;
+
+    let udp = UdpSocket::bind(LOCAL_ADDR)?;
+    udp.connect(&destination).expect("unable to connect");
+
+    let t1 = Utc::now();
+
+    udp.send(&message)?;
+    udp.set_read_timeout(Some(timeout))?;
+    udp.recv_from(&mut response.data)?;
+    let t4 = Utc::now();
+
+    let t2: DateTime<Utc> =
+        response
+            .rx_time()
+            .unwrap()
+            .into();
+    let t3: DateTime<Utc> =
+        response
+            .tx_time()
+            .unwrap()
+            .into();
+    
+    Ok(NTPResult {
+        t1: t1,
+        t2: t2,
+        t3: t3,
+        t4: t4,
+    })
+}
+
+fn check_time() -> Result<f64, std::io::Error> {
+    const NTP_PORT: u16 = 123;
+
+    let servers = [
+        "time.nist.gov",
+        "time.apple.com",
+        "time.euro.apple.com",
+        "time.google.com",
+        "time2.google.com",
+        //"time.windows.com",
+    ];
+
+    let mut times = Vec::with_capacity(servers.len());
+
+    for &server in servers.iter() {
+        print!("{} =>", server);
+
+        let calc = ntp_roundtrip(&server, NTP_PORT);
+
+        match calc {
+            Ok(time) => {
+                println!(" {}ms away from local system tine", time.offset());
+                times.push(time);
+            }
+            Err(_) => {
+                println!(" ? [response took too long!]")
+            }
+        }
+    };
+
+    let mut offsets = Vec::with_capacity(servers.len());
+    let mut offset_weights = Vec::with_capacity(servers.len());
+
+    for time in &times {
+        let offset = time.offset() as f64;
+        let delay = time.delay() as f64;
+
+        let weight = 1_000_000.0 / (delay * delay);
+        if weight.is_finite() {
+            offsets.push(offset);
+            offset_weights.push(weight);
+        }
+    }
+
+    let avg_offset = weighted_mean(&offsets, &offset_weights);
+
+    Ok(avg_offset)
 }
 
 struct Clock;
@@ -196,8 +283,8 @@ impl Clock {
 
 fn main() {
     let app = App::new("clock")
-        .version("0.1.2")
-        .about("Gets and (aspirationally) sets the time.")
+        .version("0.1.3")
+        .about("Gets and sets the time.")
         .after_help(
             "Note: UNIX timestamps are parsed as whole \
             seconds since 1st January 1970 0:00:00 UTC. \
@@ -206,7 +293,7 @@ fn main() {
         .arg(
             Arg::with_name("action")
                 .takes_value(true)
-                .possible_values(&["get", "set"])
+                .possible_values(&["get", "set", "check-ntp"])
                 .default_value("get"),
         )
         .arg(
@@ -246,6 +333,24 @@ fn main() {
         let t = parser(t_).expect(&err_msg);
 
         Clock::set(t);
+    } else if action == "check-ntp" {
+        let offset = check_time().unwrap() as isize;
+
+        let adjust_ms_ = offset.signum() * offset.abs().min(200) / 5;
+        let adjust_ms = ChronoDuration::milliseconds(adjust_ms_ as i64);
+
+        let now: DateTime<Utc> = Utc::now() + adjust_ms;
+
+        Clock::set(now);
+    }
+
+    let maybe_error = std::io::Error::last_os_error();
+    let os_error_code = &maybe_error.raw_os_error();
+
+    match os_error_code {
+        Some(0) => (),
+        Some(_) => eprintln!("Unable to set the time: {:?}", maybe_error),
+        None => (),
     }
 
     let now = Clock::get();
