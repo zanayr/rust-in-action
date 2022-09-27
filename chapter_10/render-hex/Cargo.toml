@@ -1,0 +1,8 @@
+[package]
+name = "render-hex"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tim McNamara <author@rustinaction.com>"]
+
+[dependencies]
+svg = "0.6"
