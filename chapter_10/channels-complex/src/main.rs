@@ -4,7 +4,7 @@ use crossbeam::channel::unbounded;
 
 use std::thread;
 
-use crate::ConnectivityCheck::*;
+use ConnectivityCheck::*;
 
 #[derive(Debug)]
 enum ConnectivityCheck {

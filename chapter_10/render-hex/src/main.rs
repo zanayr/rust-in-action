@@ -5,7 +5,7 @@ use svg::node::element::path::{Command, Data, Position};
 use svg::node::element::{Path, Rectangle};
 use svg::Document;
 
-use crate::Operation::{
+use Operation::{
     Forward,
     Home,
     Noop,
@@ -13,7 +13,7 @@ use crate::Operation::{
     TurnRight,
 };
 
-use crate::Orientation::{
+use Orientation::{
     East,
     North,
     South,

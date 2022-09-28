@@ -7,7 +7,7 @@ use svg::Document;
 use std::thread;
 use std::env;
 
-use crate::Operation::{
+use Operation::{
     Forward,
     Home,
     Noop,
@@ -15,7 +15,7 @@ use crate::Operation::{
     TurnRight,
 };
 
-use crate::Orientation::{
+use Orientation::{
     East,
     North,
     South,
