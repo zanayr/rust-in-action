@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(core_intrinsics)]
+#![feature(land_items)]
 
 use core::intrinsics;
 use core::panic::PanicInfo;
@@ -11,6 +12,10 @@ use x86_64::instructions::{hlt};
 pub fn panic(_info: &PanicInfo) -> ! {
     intrinsics::abort();
 }
+
+#[lang = "eh_personality"]
+#[no_mangle]
+pub extern "C" fn en_personality() { }
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
