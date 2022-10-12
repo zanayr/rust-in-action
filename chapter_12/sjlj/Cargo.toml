@@ -1,0 +1,8 @@
+[package]
+name = "sjlj"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tim McNamara <author@rustinaction>"]
+
+[dependencies]
+libc = "0.2"
