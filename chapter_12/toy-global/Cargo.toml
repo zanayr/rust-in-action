@@ -1,0 +1,8 @@
+[package]
+name = "toy-global"
+version = "0.1.0"
+edition = "2021"
+authors = ["Time McNamara <author@rustinaction.com>"]
+
+[dependencies]
+rand = "0.6"
